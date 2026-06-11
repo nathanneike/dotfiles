@@ -21,10 +21,11 @@ npm install -g basedpyright
 mkdir -p ~/config
 
 #symlink config
+mkdir -p ~/.config
+
 ln -sfn ~/dotfiles/nvim ~/.config/nvim
 ln -sfn ~/dotfiles/tmux ~/.config/tmux
-
-# Legacy tmux location
+ln -sfn ~/.config/tmux/tmux.conf ~/.tmux.conf# Legacy tmux location
 ln -sfn ~/.config/tmux/tmux.conf ~/.tmux.conf
 
 echo "macOS setup complete."
