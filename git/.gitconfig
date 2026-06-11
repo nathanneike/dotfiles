@@ -1,0 +1,10 @@
+[user]
+    name = Nathan Neike
+    email = nathanneike@outlook.de
+
+[init]
+    defaultBranch = main
+
+[alias]
+    st = status
+    co = checkout
