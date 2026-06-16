@@ -1,0 +1,5 @@
+return {
+    { "m4xshen/hardtime.nvim", dependencies = { "MunifTanjim/nui.nvim" } },
+
+    { "neovim/nvim-lspconfig" },
+}

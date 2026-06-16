@@ -5,8 +5,11 @@ call plug#begin()
 
 Plug 'm4xshen/hardtime.nvim'
 Plug 'MunifTanjim/nui.nvim'
-
+Plug 'neovim/nvim-lspconfig'
+Plug 'hrsh7th/nvim-cmp'
+Plug 'hrsh7th/cmp-nvim-lsp'
 call plug#end()
+
 
 set relativenumber
 
@@ -28,4 +31,14 @@ nnoremap <leader>x :wq<CR>
 set clipboard+=unnamedplus
 lua << EOF
 require("hardtime").setup()
+vim.lsp.enable("pyright")
+vim.diagnostic.config({
+    virtual_text = true,
+    signs = true, 
+    underline = true, 
+    severity_sort = true,
+})
+
+vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float)
 EOF
+
