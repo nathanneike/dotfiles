@@ -1,4 +1,5 @@
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home
+export PATH="$HOME/.local/bin:$PATH"
 
-# uv
-export PATH="/Users/nathanneike/.local/bin:$PATH"
+if [[ "$(uname)" == "Darwin" ]]; then
+    export JAVA_HOME=/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home
+fi

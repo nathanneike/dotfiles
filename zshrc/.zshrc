@@ -4,26 +4,39 @@ plugins=(
   zsh-syntax-highlighting
 )
 
-source $ZSH/oh-my-zsh.sh
+if [[ -n "${ZSH:-}" && -f "$ZSH/oh-my-zsh.sh" ]]; then
+  source "$ZSH/oh-my-zsh.sh"
+fi
 
 alias resource="source ~/.zshrc"
 alias docker-compose="docker compose"
-alias cat="bat --paging=never"
 
-#eza aliases for nicer lsing :)
-alias la='eza -la --git --group-directories-first'
-alias ll='eza -l --git --group-directories-first'
-alias tree='eza --tree'
 alias c="clear"
 alias web="browsh"
 
-export PATH="/opt/homebrew/bin:$PATH"
+if command -v bat >/dev/null 2>&1; then
+  alias cat="bat --paging=never"
+fi
+
+if command -v eza >/dev/null 2>&1; then
+  alias la='eza -la --git --group-directories-first'
+  alias ll='eza -l --git --group-directories-first'
+  alias tree='eza --tree'
+fi
+
+if [[ "$(uname)" == "Darwin" ]]; then
+  export PATH="/opt/homebrew/bin:$PATH"
+fi
 
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
 
-eval "$(zoxide init zsh)"
-eval "$(pyenv init - zsh)"
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh)"
+fi
+
+if command -v pyenv >/dev/null 2>&1; then
+  eval "$(pyenv init - zsh)"
+fi
 
 [ -f ~/.zshrc.private ] && source ~/.zshrc.private
-

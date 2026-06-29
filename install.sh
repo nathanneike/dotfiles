@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 case "$(uname)" in
     Darwin)
-        ./install-mac.sh
+        exec "$script_dir/install-mac.sh"
         ;;
     Linux)
-        ./install-linux.sh
+        exec "$script_dir/install-linux.sh"
         ;;
     *)
         echo "Unsupported OS"
