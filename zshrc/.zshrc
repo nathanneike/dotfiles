@@ -24,6 +24,8 @@ if command -v eza >/dev/null 2>&1; then
   alias tree='eza --tree'
 fi
 
+export PATH="$HOME/.local/bin:$PATH"
+
 if [[ "$(uname)" == "Darwin" ]]; then
   export PATH="/opt/homebrew/bin:$PATH"
 fi

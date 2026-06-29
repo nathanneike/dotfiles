@@ -1,32 +1,57 @@
+#!/usr/bin/env bash
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$script_dir"
 
+LOGFILE="$(mktemp)"
+declare -a COMPLETED
+
+GREEN="\033[0;32m"
+RED="\033[0;31m"
+BLUE="\033[0;34m"
+RESET="\033[0m"
+
 mkdir -p "$HOME/.config" "$HOME/.local/bin"
 
 link_file() {
-    local source_path="$1"
-    local target_path="$2"
-
-    ln -sfn "$source_path" "$target_path"
+    ln -sfn "$1" "$2"
 }
 
-run_as_root() {
-    if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
-        "$@"
-    elif command -v sudo >/dev/null 2>&1; then
-        sudo "$@"
+run() {
+    local name="$1"
+    local message="$2"
+    shift 2
+
+    printf "${BLUE}==>${RESET} %s... " "$message"
+
+    if "$@" >>"$LOGFILE" 2>&1; then
+        printf "${GREEN}✓${RESET}\n"
+        COMPLETED+=("$message")
     else
-        "$@"
+        printf "${RED}✗${RESET}\n"
+        echo
+        echo "Failed during:"
+        echo "  $message"
+        echo
+        echo "Full log:"
+        cat "$LOGFILE"
+        exit 1
     fi
 }
 
-install_packages_apt() {
-    run_as_root apt-get update
-    run_as_root apt-get install -y \
+###############################################################################
+# Packages
+###############################################################################
+
+run apt_update \
+    "Updating apt repositories" \
+    sudo apt update
+
+run packages \
+    "Installing packages" \
+    sudo apt install -y \
         git \
-        neovim \
         tmux \
         ripgrep \
         fzf \
@@ -35,117 +60,117 @@ install_packages_apt() {
         npm \
         python3 \
         python3-pip \
-        curl
+        curl \
+        unzip \
+        xclip \
+        fd-find \
+        bat
 
-    for package in fd-find bat eza; do
-        run_as_root apt-get install -y "$package" || true
-    done
-}
+###############################################################################
+# Neovim
+###############################################################################
 
-install_packages_dnf() {
-    run_as_root dnf install -y \
-        git \
-        neovim \
-        tmux \
-        ripgrep \
-        fzf \
-        zsh \
-        nodejs \
-        npm \
-        python3 \
-        python3-pip \
-        curl
+NVIM_VERSION="v0.11.4"
+NVIM_URL="https://github.com/neovim/neovim/releases/download/${NVIM_VERSION}/nvim-linux-x86_64.tar.gz"
 
-    for package in fd-find bat eza; do
-        run_as_root dnf install -y "$package" || true
-    done
-}
+run download \
+    "Downloading Neovim ${NVIM_VERSION}" \
+    curl -LO "$NVIM_URL"
 
-install_packages_pacman() {
-    run_as_root pacman -Sy --noconfirm \
-        git \
-        neovim \
-        tmux \
-        ripgrep \
-        fzf \
-        zsh \
-        nodejs \
-        npm \
-        python \
-        python-pip \
-        curl
+run remove_old \
+    "Removing previous Neovim" \
+    rm -rf "$HOME/.local/nvim"
 
-    for package in fd bat eza; do
-        run_as_root pacman -S --noconfirm "$package" || true
-    done
-}
+run extract \
+    "Extracting Neovim" \
+    tar -C "$HOME/.local" -xzf nvim-linux-x86_64.tar.gz
 
-install_packages_zypper() {
-    run_as_root zypper install -y \
-        git \
-        neovim \
-        tmux \
-        ripgrep \
-        fzf \
-        zsh \
-        nodejs \
-        npm \
-        python3 \
-        python3-pip \
-        curl
+run install \
+    "Installing Neovim" \
+    mv "$HOME/.local/nvim-linux-x86_64" "$HOME/.local/nvim"
 
-    for package in fd bat eza; do
-        run_as_root zypper install -y "$package" || true
-    done
-}
+run symlink \
+    "Creating Neovim symlink" \
+    ln -sfn "$HOME/.local/nvim/bin/nvim" "$HOME/.local/bin/nvim"
 
-case "${PKG_MANAGER:-}" in
-    apt)
-        install_packages_apt
-        ;;
-    dnf)
-        install_packages_dnf
-        ;;
-    pacman)
-        install_packages_pacman
-        ;;
-    zypper)
-        install_packages_zypper
-        ;;
-    "")
-        if command -v apt-get >/dev/null 2>&1; then
-            install_packages_apt
-        elif command -v dnf >/dev/null 2>&1; then
-            install_packages_dnf
-        elif command -v pacman >/dev/null 2>&1; then
-            install_packages_pacman
-        elif command -v zypper >/dev/null 2>&1; then
-            install_packages_zypper
-        else
-            echo "No supported package manager found; skipping package install"
-        fi
-        ;;
-    *)
-        echo "Unsupported package manager: $PKG_MANAGER"
-        exit 1
-        ;;
-esac
+run cleanup \
+    "Cleaning temporary files" \
+    rm nvim-linux-x86_64.tar.gz
 
-if command -v npm >/dev/null 2>&1; then
-    run_as_root npm install -g pyright
+###############################################################################
+# Pyright
+###############################################################################
+
+run pyright \
+    "Installing Pyright" \
+    sudo npm install -g pyright
+
+###############################################################################
+# Convenience symlinks
+###############################################################################
+
+if command -v fdfind >/dev/null; then
+    run fd \
+        "Creating fd symlink" \
+        link_file "$(command -v fdfind)" "$HOME/.local/bin/fd"
 fi
 
-if command -v fdfind >/dev/null 2>&1; then
-    link_file "$(command -v fdfind)" "$HOME/.local/bin/fd"
+if command -v batcat >/dev/null; then
+    run bat \
+        "Creating bat symlink" \
+        link_file "$(command -v batcat)" "$HOME/.local/bin/bat"
 fi
 
-if command -v batcat >/dev/null 2>&1; then
-    link_file "$(command -v batcat)" "$HOME/.local/bin/bat"
-fi
+###############################################################################
+# Dotfiles
+###############################################################################
 
-link_file "$repo_root/nvim" "$HOME/.config/nvim"
-link_file "$repo_root/tmux" "$HOME/.config/tmux"
-link_file "$HOME/.config/tmux/tmux.conf" "$HOME/.tmux.conf"
-link_file "$repo_root/zshrc/.zshrc" "$HOME/.zshrc"
-link_file "$repo_root/zshenv" "$HOME/.zshenv"
-link_file "$repo_root/git/.gitconfig" "$HOME/.gitconfig"
+run nvim \
+    "Linking Neovim config" \
+    link_file "$repo_root/nvim" "$HOME/.config/nvim"
+
+run tmux \
+    "Linking tmux config" \
+    link_file "$repo_root/tmux" "$HOME/.config/tmux"
+
+run tmux_legacy \
+    "Linking ~/.tmux.conf" \
+    link_file "$HOME/.config/tmux/tmux.conf" "$HOME/.tmux.conf"
+
+run zshrc \
+    "Linking ~/.zshrc" \
+    link_file "$repo_root/zshrc/.zshrc" "$HOME/.zshrc"
+
+run zshenv \
+    "Linking ~/.zshenv" \
+    link_file "$repo_root/zshenv" "$HOME/.zshenv"
+
+run gitconfig \
+    "Linking ~/.gitconfig" \
+    link_file "$repo_root/git/.gitconfig" "$HOME/.gitconfig"
+
+###############################################################################
+# Summary
+###############################################################################
+
+echo
+echo -e "${GREEN}Bootstrap completed successfully!${RESET}"
+echo
+echo "Completed steps:"
+echo
+
+for step in "${COMPLETED[@]}"; do
+    printf "  ${GREEN}✓${RESET} %s\n" "$step"
+done
+
+echo
+echo "Neovim version:"
+"$HOME/.local/bin/nvim" --version | head -1
+
+echo
+echo "Log saved to:"
+echo "  $LOGFILE"
+
+echo
+echo "Run:"
+echo "  source ~/.zshrc"
