@@ -6,11 +6,22 @@ return {
             local capabilities =
                 require("cmp_nvim_lsp").default_capabilities()
 
-            vim.lsp.config("pyright", {
-                capabilities = capabilities,
-            })
+            local servers = {
+                "pyright",
+                "yamlls",
+                "bashls",
+                "dockerls",
+                "jsonls",
+                "lua_ls",
+            }
 
-            vim.lsp.enable("pyright")
+            for _, server in ipairs(servers) do
+                vim.lsp.config(server, {
+                    capabilities = capabilities,
+                })
+
+                vim.lsp.enable(server)
+            end
 
             vim.keymap.set("n", "K", vim.lsp.buf.hover)
             vim.keymap.set("n", "gd", vim.lsp.buf.definition)

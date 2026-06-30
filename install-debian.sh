@@ -100,12 +100,31 @@ run cleanup \
     rm nvim-linux-x86_64.tar.gz
 
 ###############################################################################
-# Pyright
+# Language servers
 ###############################################################################
 
-run pyright \
-    "Installing Pyright" \
-    sudo npm install -g pyright
+run lsp \
+    "Installing language servers" \
+    sudo npm install -g \
+        pyright \
+        yaml-language-server \
+        bash-language-server \
+        dockerfile-language-server-nodejs \
+        vscode-langservers-extracted
+
+###############################################################################
+# Development tools
+###############################################################################
+
+run dev_tools \
+    "Installing development tools" \
+    sudo npm install -g prettier
+
+run shell_tools \
+    "Installing shell tools" \
+    sudo apt install -y \
+        shellcheck \
+        shfmt
 
 ###############################################################################
 # Convenience symlinks
@@ -179,6 +198,5 @@ echo "  $LOGFILE"
 
 echo
 echo "Run:"
-echo "  source ~/.zshrc"
-echo "Run:"
+echo " source ~/.zshrc"
 echo " source ~/.bashrc"
