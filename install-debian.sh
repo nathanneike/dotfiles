@@ -14,6 +14,8 @@ RESET="\033[0m"
 
 mkdir -p "$HOME/.config" "$HOME/.local/bin"
 
+ln -sfn "$HOME/.local/nvim/bin/nvim" "$HOME/.local/bin/nvim"
+
 link_file() {
     ln -sfn "$1" "$2"
 }
@@ -141,6 +143,10 @@ run zshrc \
     "Linking ~/.zshrc" \
     link_file "$repo_root/zshrc/.zshrc" "$HOME/.zshrc"
 
+run bashrc \
+    "Linking ~/.bashrc" \
+    link_file "$repo_root/bash/.bashrc" "$HOME/.bashrc"
+
 run zshenv \
     "Linking ~/.zshenv" \
     link_file "$repo_root/zshenv" "$HOME/.zshenv"
@@ -174,3 +180,5 @@ echo "  $LOGFILE"
 echo
 echo "Run:"
 echo "  source ~/.zshrc"
+echo "Run:"
+echo " source ~/.bashrc"
