@@ -66,7 +66,11 @@ run packages \
         unzip \
         xclip \
         fd-find \
-        bat
+        bat \
+        eza \
+        zoxide \
+        shellcheck \
+        shfmt
 
 ###############################################################################
 # Neovim
@@ -120,11 +124,9 @@ run dev_tools \
     "Installing development tools" \
     sudo npm install -g prettier
 
-run shell_tools \
-    "Installing shell tools" \
-    sudo apt install -y \
-        shellcheck \
-        shfmt
+run python_tools \
+    "Installing Python development tools" \
+    pip3 install --user ruff
 
 ###############################################################################
 # Convenience symlinks
