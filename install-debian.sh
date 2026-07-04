@@ -45,33 +45,30 @@ run() {
 ###############################################################################
 # Packages
 ###############################################################################
+COMMON_PACKAGES=(
+    git
+    tmux
+    ripgrep
+    fzf
+    zsh
+    nodejs
+    npm
+    python3
+    python3-pip
+    curl
+    unzip
+    xclip
+    fd-find
+    bat
+    zoxide
+    shellcheck
+    shfmt
+)
 
-run apt_update \
-    "Updating apt repositories" \
-    sudo apt update
+sudo apt install -y "${COMMON_PACKAGES[@]}"
 
-run packages \
-    "Installing packages" \
-    sudo apt install -y \
-        git \
-        tmux \
-        ripgrep \
-        fzf \
-        zsh \
-        nodejs \
-        npm \
-        python3 \
-        python3-pip \
-        curl \
-        unzip \
-        xclip \
-        fd-find \
-        bat \
-        eza \
-        zoxide \
-        shellcheck \
-        shfmt
-
+# Optional packages
+apt-cache show eza >/dev/null 2>&1 && sudo apt install -y eza
 ###############################################################################
 # Neovim
 ###############################################################################
@@ -124,9 +121,6 @@ run dev_tools \
     "Installing development tools" \
     sudo npm install -g prettier
 
-run python_tools \
-    "Installing Python development tools" \
-    pip3 install --user ruff
 
 ###############################################################################
 # Convenience symlinks
@@ -151,6 +145,10 @@ fi
 run nvim \
     "Linking Neovim config" \
     link_file "$repo_root/nvim" "$HOME/.config/nvim"
+
+run profile \
+    "Linking ~/.profile" \
+    link_file "$repo_root/bash/.profile" "$HOME/.profile"
 
 run tmux \
     "Linking tmux config" \
